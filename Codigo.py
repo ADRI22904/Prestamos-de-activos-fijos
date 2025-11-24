@@ -8,10 +8,11 @@ EXCEL_PATH = "formulario.xlsx"  # archivo incluido en el proyecto
 #   Catálogo de Encargados
 # ============================
 encargados = {
-    "María Rodríguez": "1-2345-6789",
-    "Carlos Sánchez": "2-3456-7890",
-    "Ana Solano": "3-4567-8901",
-    "Juan Morales": "4-5678-9012"
+    "Hanzel Grillo Espinoza": "111890339",
+    "Roilan Gutiérrez Cruz": "111190040",
+    "Marielos Arias Thiel": "108150865",
+    "Mahalaed Trujillo Chaves": "402460858",
+    "Silvia Arguedas Méndez": "108200386",
 }
 
 # ============================
