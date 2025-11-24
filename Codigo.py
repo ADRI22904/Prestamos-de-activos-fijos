@@ -1,95 +1,89 @@
 import streamlit as st
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from openpyxl import load_workbook
 from io import BytesIO
-from datetime import date
 
-st.title("Formulario de Préstamo de Activos Fijos - UCR")
+EXCEL_PATH = "formulario.xlsx"  # archivo incluido en el proyecto
 
-st.write("Complete los datos para generar el documento PDF.")
+def llenar_excel(datos, activos):
+    wb = load_workbook(EXCEL_PATH)
+    ws = wb.active
 
-# --- FORMULARIO ---
-with st.form("prestamo_form"):
-    fecha = st.date_input("Fecha", value=date.today())
+    # --- Asignación de datos fijos ---
+    ws["H9"] = datos["fecha"]
+    ws["C12"] = datos["nombre"]
+    ws["J12"] = datos["cedula"]
+    ws["D14"] = datos["calidad"]
 
-    st.subheader("Datos del solicitante")
-    nombre = st.text_input("Nombre completo")
-    cedula = st.text_input("Cédula o carné")
-    calidad = st.text_input("En calidad de (puesto o relación con la UCR)")
-    de_que = st.text_input("¿De qué unidad o proyecto?")
+    # --- Activos (máximo 6) ---
+    for idx, activo in enumerate(activos):
+        row = 20 + idx
+        ws[f"B{row}"] = activo["placa"]
+        ws[f"D{row}"] = activo["descripcion"]
+        ws[f"G{row}"] = activo["marca"]
+        ws[f"I{row}"] = activo["modelo"]
+        ws[f"K{row}"] = activo["serie"]
 
-    st.subheader("Información de los activos")
-    placa = st.text_input("Placa")
-    descripcion = st.text_input("Descripción del activo")
-    marca = st.text_input("Marca")
-    modelo = st.text_input("Modelo")
-    serie = st.text_input("Serie")
+    # Unidad custodio
+    ws["E32"] = datos["unidad_custodio"]
+    ws["E34"] = datos["encargado_bienes"]
+    ws["E36"] = datos["cedula_uc"]
 
-    st.subheader("Entrega")
-    unidad_custodio = st.text_input("Unidad Custodio")
-    encargado = st.text_input("Encargado de Bienes Institucionales")
-    encargado_cedula = st.text_input("Cédula del encargado")
+    # Nombre en D45–E45
+    ws["D45"] = datos["nombre"]
 
-    st.subheader("Recepción")
-    fecha_devolucion = st.date_input("Fecha de devolución")
+    # Guardar en memoria
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output
 
-    submitted = st.form_submit_button("Generar PDF")
+st.title("Formulario de Préstamo de Bienes")
 
-# --- GENERACIÓN DEL PDF ---
-if submitted:
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    c.setFont("Helvetica", 11)
+nombre = st.text_input("Nombre completo")
+cedula = st.text_input("Cédula o carné")
+fecha = st.date_input("Fecha del préstamo")
+calidad = st.text_input("Calidad del solicitante (estudiante, funcionario…)")
 
-    # Usamos una lista para modificar la posición Y dentro de la función
-    y_position = [750]
+num_activos = st.number_input("Cantidad de activos", 0, 6, 1)
 
-    def write(text):
-        c.drawString(40, y_position[0], text)
-        y_position[0] -= 20
+activos = []
+for i in range(num_activos):
+    st.subheader(f"Activo {i+1}")
+    placa = st.text_input(f"Placa {i+1}")
+    descripcion = st.text_input(f"Descripción {i+1}")
+    marca = st.text_input(f"Marca {i+1}")
+    modelo = st.text_input(f"Modelo {i+1}")
+    serie = st.text_input(f"Serie {i+1}")
 
-    # --- CONTENIDO DEL PDF ---
-    write("UNIVERSIDAD DE COSTA RICA – UNIDAD DE BIENES INSTITUCIONALES")
-    write("PRÉSTAMO DE ACTIVOS FIJOS")
-    write("")
-    write(f"Fecha: {fecha}")
-    write("")
-    write(f"Yo: {nombre}")
-    write(f"Cédula o carné: {cedula}")
-    write(f"En calidad de: {calidad}")
-    write(f"Unidad/Proyecto: {de_que}")
-    write("")
-    write("Activo en préstamo:")
-    write(f"  Placa: {placa}")
-    write(f"  Descripción: {descripcion}")
-    write(f"  Marca: {marca}")
-    write(f"  Modelo: {modelo}")
-    write(f"  Serie: {serie}")
-    write("")
-    write("ENTREGA")
-    write(f"Unidad Custodio: {unidad_custodio}")
-    write(f"Encargado de Bienes Institucionales: {encargado}")
-    write(f"Cédula del encargado: {encargado_cedula}")
-    write("")
-    write("RECEPCIÓN")
-    write(f"Fecha de devolución: {fecha_devolucion}")
-    write("")
-    write("Firmas:")
-    write("  ________________________________    ________________________________")
-    write("             Solicitante                          Encargado")
-    write("")
-    write("Nota: El original de este documento será entregado al solicitante después de")
-    write("que se haya recibido satisfactoriamente el o los equipos.")
+    activos.append({
+        "placa": placa,
+        "descripcion": descripcion,
+        "marca": marca,
+        "modelo": modelo,
+        "serie": serie
+    })
 
-    c.save()
+unidad_custodio = st.text_input("Unidad custodio")
+encargado_bienes = st.text_input("Encargado de bienes institucionales")
+cedula_uc = st.text_input("Cédula unidad custodio")
 
-    st.success("PDF generado con éxito. Puede descargarlo abajo:")
+if st.button("Generar archivo"):
+    datos = {
+        "nombre": nombre,
+        "cedula": cedula,
+        "fecha": fecha.strftime("%d/%m/%Y"),
+        "calidad": calidad,
+        "unidad_custodio": unidad_custodio,
+        "encargado_bienes": encargado_bienes,
+        "cedula_uc": cedula_uc
+    }
 
+    excel_file = llenar_excel(datos, activos)
     st.download_button(
-        "Descargar PDF",
-        data=buffer.getvalue(),
-        file_name="prestamo_activos_fijos.pdf",
-        mime="application/pdf"
+        "Descargar formulario",
+        data=excel_file,
+        file_name="formulario_prestamo_filled.xlsx"
     )
+
 
 
