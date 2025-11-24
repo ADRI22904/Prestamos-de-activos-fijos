@@ -4,38 +4,65 @@ from io import BytesIO
 
 EXCEL_PATH = "formulario.xlsx"  # archivo incluido en el proyecto
 
+# ============================
+#   Catálogo de Encargados
+# ============================
+encargados = {
+    "Hanzel Grillo Espinoza": "111890339",
+    "Roilan Gutiérrez Cruz": "111190040",
+    "Marielos Arias Thiel": "108150865",
+    "Mahalaed Trujillo Chaves": "402460858",
+    "Silvia Arguedas Méndez": "108200386",
+}
+
+# ============================
+#   Función para llenar Excel
+# ============================
 def llenar_excel(datos, activos):
     wb = load_workbook(EXCEL_PATH)
     ws = wb.active
 
-    # --- Asignación de datos fijos ---
-    ws["H9"] = datos["fecha"]
-    ws["C12"] = datos["nombre"]
-    ws["J12"] = datos["cedula"]
-    ws["D14"] = datos["calidad"]
+    # ----------------------------
+    #   Campos fijos (celdas combinadas → escribir en la primera)
+    # ----------------------------
+    ws["H9"] = datos["fecha"]                     # H9–J9 combinadas
+    ws["C12"] = datos["nombre"]                  # C12–E12 combinadas
+    ws["J12"] = datos["cedula"]                  # J12–K12 combinadas
+    ws["D14"] = datos["calidad"]                 # D14
 
-    # --- Activos (máximo 6) ---
+    # ----------------------------
+    #   Activos (máximo 6)
+    # ----------------------------
     for idx, activo in enumerate(activos):
         row = 20 + idx
         ws[f"B{row}"] = activo["placa"]
-        ws[f"D{row}"] = activo["descripcion"]
+        ws[f"D{row}"] = activo["descripcion"]     # D–E combinadas
         ws[f"G{row}"] = activo["marca"]
         ws[f"I{row}"] = activo["modelo"]
         ws[f"K{row}"] = activo["serie"]
 
-    # Unidad custodio
-    ws["E32"] = datos["unidad_custodio"]
-    ws["E34"] = datos["encargado_bienes"]
-    ws["E36"] = datos["cedula_uc"]
+    # ----------------------------
+    #   Unidad custodio y encargado
+    # ----------------------------
+    ws["E32"] = datos["unidad_custodio"]          # E32–K32
+    ws["E34"] = datos["encargado_bienes"]         # E34–K34
+    ws["E36"] = datos["cedula_uc"]                # E36–K36
 
-    # Nombre en D45–E45
-    ws["D45"] = datos["nombre"]
+    # ----------------------------
+    #   Campo de nombre en firma
+    # ----------------------------
+    ws["D45"] = datos["nombre"]                   # D45–E45
 
     # Guardar en memoria
     output = BytesIO()
     wb.save(output)
     output.seek(0)
     return output
+
+
+# ============================
+#   Interfaz en Streamlit
+# ============================
 
 st.title("Formulario de Préstamo de Bienes")
 
@@ -45,6 +72,10 @@ fecha = st.date_input("Fecha del préstamo")
 calidad = st.text_input("Calidad del solicitante (estudiante, funcionario…)")
 
 num_activos = st.number_input("Cantidad de activos", 0, 6, 1)
+
+# ----------------------------
+#   Activos dinámicos
+# ----------------------------
 
 activos = []
 for i in range(num_activos):
@@ -64,8 +95,26 @@ for i in range(num_activos):
     })
 
 unidad_custodio = st.text_input("Unidad custodio")
-encargado_bienes = st.text_input("Encargado de bienes institucionales")
-cedula_uc = st.text_input("Cédula unidad custodio")
+
+# ----------------------------
+#   MENÚ DESPLEGABLE
+# ----------------------------
+
+encargado_bienes = st.selectbox(
+    "Encargado de bienes institucionales",
+    ["Seleccione un encargado"] + list(encargados.keys())
+)
+
+# autocompletar cédula
+cedula_uc = ""
+if encargado_bienes != "Seleccione un encargado":
+    cedula_uc = encargados[encargado_bienes]
+
+st.text_input("Cédula del encargado", cedula_uc, disabled=True)
+
+# ----------------------------
+#   BOTÓN: generar
+# ----------------------------
 
 if st.button("Generar archivo"):
     datos = {
@@ -74,7 +123,7 @@ if st.button("Generar archivo"):
         "fecha": fecha.strftime("%d/%m/%Y"),
         "calidad": calidad,
         "unidad_custodio": unidad_custodio,
-        "encargado_bienes": encargado_bienes,
+        "encargado_bienes": encargado_bienes if encargado_bienes != "Seleccione un encargado" else "",
         "cedula_uc": cedula_uc
     }
 
@@ -84,6 +133,3 @@ if st.button("Generar archivo"):
         data=excel_file,
         file_name="formulario_prestamo_filled.xlsx"
     )
-
-
-
