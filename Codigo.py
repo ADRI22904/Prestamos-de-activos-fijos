@@ -2,7 +2,7 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
-EXCEL_PATH = "formulario.xlsx"  # archivo incluido en el proyecto
+EXCEL_PATH = "formulario2.xlsx"  # archivo incluido en el proyecto
 
 # ============================
 #   Catálogo de Encargados
