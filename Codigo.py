@@ -2,17 +2,16 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
-EXCEL_PATH = "formulario2.xlsx"  # archivo incluido en el proyecto
+EXCEL_PATH = "formulario.xlsx"  # archivo incluido en el proyecto
 
 # ============================
 #   Catálogo de Encargados
 # ============================
 encargados = {
-    "Hanzel Grillo Espinoza": "111890339",
-    "Roilan Gutiérrez Cruz": "111190040",
-    "Marielos Arias Thiel": "108150865",
-    "Mahalaed Trujillo Chaves": "402460858",
-    "Silvia Arguedas Méndez": "108200386",
+    "María Rodríguez": "1-2345-6789",
+    "Carlos Sánchez": "2-3456-7890",
+    "Ana Solano": "3-4567-8901",
+    "Juan Morales": "4-5678-9012"
 }
 
 # ============================
@@ -23,7 +22,7 @@ def llenar_excel(datos, activos):
     ws = wb.active
 
     # ----------------------------
-    #   Campos fijos (celdas combinadas → escribir en la primera)
+    #   Campos fijos (celdas combinadas)
     # ----------------------------
     ws["H9"] = datos["fecha"]                     # H9–J9 combinadas
     ws["C12"] = datos["nombre"]                  # C12–E12 combinadas
@@ -64,12 +63,19 @@ def llenar_excel(datos, activos):
 #   Interfaz en Streamlit
 # ============================
 
-st.title("Formulario de Préstamo de Activos")
+st.title("Formulario de Préstamo de Bienes")
 
 nombre = st.text_input("Nombre completo")
 cedula = st.text_input("Cédula o carné")
 fecha = st.date_input("Fecha del préstamo")
-calidad = st.text_input("Calidad del solicitante (estudiante, funcionario…)")
+
+# ----------------------------
+#   NUEVO: Menú desplegable para Calidad
+# ----------------------------
+calidad = st.selectbox(
+    "Calidad del solicitante",
+    ["Persona estudiante", "Personal docente", "Externo"]
+)
 
 num_activos = st.number_input("Cantidad de activos", 0, 6, 1)
 
@@ -97,7 +103,7 @@ for i in range(num_activos):
 unidad_custodio = st.text_input("Unidad custodio")
 
 # ----------------------------
-#   MENÚ DESPLEGABLE
+#   MENÚ DESPLEGABLE encargados
 # ----------------------------
 
 encargado_bienes = st.selectbox(
