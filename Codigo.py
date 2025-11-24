@@ -24,7 +24,7 @@ def llenar_excel(datos, activos):
     # ----------------------------
     #   Campos fijos (celdas combinadas)
     # ----------------------------
-    ws["H9"] = datos["fecha"]                     # H9–J9 combinadas
+    ws["J9"] = datos["fecha"]                     # H9–J9 combinadas
     ws["C12"] = datos["nombre"]                  # C12–E12 combinadas
     ws["J12"] = datos["cedula"]                  # J12–K12 combinadas
     ws["D14"] = datos["calidad"]                 # D14
@@ -70,7 +70,7 @@ cedula = st.text_input("Cédula o carné")
 fecha = st.date_input("Fecha del préstamo")
 
 # ----------------------------
-#   NUEVO: Menú desplegable para Calidad
+#   Menú desplegable para Calidad
 # ----------------------------
 calidad = st.selectbox(
     "Calidad del solicitante",
@@ -82,7 +82,6 @@ num_activos = st.number_input("Cantidad de activos", 0, 6, 1)
 # ----------------------------
 #   Activos dinámicos
 # ----------------------------
-
 activos = []
 for i in range(num_activos):
     st.subheader(f"Activo {i+1}")
@@ -100,18 +99,20 @@ for i in range(num_activos):
         "serie": serie
     })
 
-unidad_custodio = st.text_input("Unidad custodio")
+# ----------------------------
+#   Unidad custodio fija
+# ----------------------------
+unidad_custodio = "Escuela de Ingeniería Industrial"
+st.text_input("Unidad custodio", unidad_custodio, disabled=True)
 
 # ----------------------------
-#   MENÚ DESPLEGABLE encargados
+#   Encargado + autollenado
 # ----------------------------
-
 encargado_bienes = st.selectbox(
     "Encargado de bienes institucionales",
     ["Seleccione un encargado"] + list(encargados.keys())
 )
 
-# autocompletar cédula
 cedula_uc = ""
 if encargado_bienes != "Seleccione un encargado":
     cedula_uc = encargados[encargado_bienes]
@@ -121,7 +122,6 @@ st.text_input("Cédula del encargado", cedula_uc, disabled=True)
 # ----------------------------
 #   BOTÓN: generar
 # ----------------------------
-
 if st.button("Generar archivo"):
     datos = {
         "nombre": nombre,
@@ -134,6 +134,7 @@ if st.button("Generar archivo"):
     }
 
     excel_file = llenar_excel(datos, activos)
+    
     st.download_button(
         "Descargar formulario",
         data=excel_file,
