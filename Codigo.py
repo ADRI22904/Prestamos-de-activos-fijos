@@ -25,7 +25,7 @@ def llenar_excel(datos, activos):
     # ----------------------------
     #   Campos fijos (celdas combinadas)
     # ----------------------------
-    ws["J9"] = datos["fecha"]                     # H9–J9 combinadas
+    ws["K9"] = datos["fecha"]                     # H9–J9 combinadas
     ws["C12"] = datos["nombre"]                  # C12–E12 combinadas
     ws["J12"] = datos["cedula"]                  # J12–K12 combinadas
     ws["D14"] = datos["calidad"]                 # D14
