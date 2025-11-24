@@ -64,7 +64,7 @@ def llenar_excel(datos, activos):
 #   Interfaz en Streamlit
 # ============================
 
-st.title("Formulario de Préstamo de Bienes")
+st.title("Formulario de Préstamo de Activos de la Escuela de Ingeniería Industrial de la UCR")
 
 nombre = st.text_input("Nombre completo")
 cedula = st.text_input("Cédula o carné")
